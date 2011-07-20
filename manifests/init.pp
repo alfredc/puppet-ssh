@@ -7,10 +7,8 @@
 class ssh {
 
     package {
-        "openssh": ;
-        "openssh-clients": ;
         "openssh-server": 
-            require => Package["openssh"];
+            ensure => installed;
     } # package
 
     file {
@@ -24,20 +22,47 @@ class ssh {
             source   => "puppet:///modules/ssh/ssh_config",
             mode     => "644",
             checksum => md5,
-            require  => [ Package["openssh-server"], Package["openssh-clients"] ];
+            require  => Package["openssh-server"];
         "/etc/ssh/ssh_known_hosts":
             mode     => "644";
     } # file
 
     Sshkey { type => ssh-rsa }
 
+    # Definition: ssh::private_key
+    #
+    # install a public host key
+    #
+    # Parameters:   
+    #   $name   - the host name that the key is associated with
+    #   $key    - the key from host, should NOT contain the "ssh-rsa" beginning
+    #   $ensure - should the public key file be 'present' or 'absent', defaults to present
+    #
+    # Actions:
+    #   install a public host key
+    #
+    # Requires:
+    #   must specify $user
+    #
+    # Sample Usage:
+    #    # setup private key for post-commit
+    #    ssh::host_rsa_key { "host1.pop.yourdomain.tld":
+    #        key => "AAAABNa1ycVocshelcia....blopFihatEgNOTAREALKEY==";
+    #    } # ssh::host_rsa_key
+    #
     # /etc/ssh/ssh_host_rsa_key.pub from host
     # your key should *NOT* have the ssh-rsa part or it will show up
     # twice and will not work
-    sshkey {
-        "host1.pop.yourdomain.tld":
-            key => "AAAABNa1ycVocshelciawgUkCymKankilcoucnagAreahuld9SadCybluOcEtovUvaphyap1kenebmeeHoofukdytVafnulEyGhickuandeOjubIrkAcCegJinnegMokeeJoFrowlatIvUjej5slyavfoapushgosNufHodsOckDuTajtoagUndedCafJicJenshicMognugoasEgcuvVibdepKoxjoopsInonawoddadIahefhaytshijyethFoonOuk0druwartudfityutGogPoanEmNomWeddaneelpoakE0swiOzcycsAjekbocCeHolOkyaHolIsjuksudwyffest1blopFihatEgNOTAREALKEY==";
-    } # sshkey
+    define host_rsa_key($key, $ensure = present) {
+        sshkey { "$name":
+            key => $key,
+        } # sshkey
+        
+        file { "/etc/ssh/ssh_host_rsa_key.pub":
+            mode    => "644",
+            ensure  => $ensure,
+        } # file
+    } # define host_rsa_key
 
     service { "sshd":
         ensure    => running,
