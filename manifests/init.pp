@@ -64,7 +64,7 @@ class ssh {
         } # file
     } # define host_rsa_key
 
-    service { "sshd":
+    service { "ssh":
         ensure    => running,
         enable    => true,
         hasstatus => true,
