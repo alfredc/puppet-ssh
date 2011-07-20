@@ -17,7 +17,7 @@ class ssh {
             mode     => "600",
             checksum => md5,
             require  => Package["openssh-server"],
-            notify   => Service["sshd"];
+            notify   => Service["ssh"];
         "/etc/ssh/ssh_config":
             source   => "puppet:///modules/ssh/ssh_config",
             mode     => "644",
